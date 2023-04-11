@@ -1,0 +1,48 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum OAuth2Providers {
+  MAPREEDEV
+  DISCORD
+  GOOGLE
+  FACEBOOK
+}
+
+model User {
+  id          String       @id @db.Uuid()
+  name        String
+  avatar      String
+  email       String       @unique
+  Connections Connection[]
+  Sessions    Session[]
+  createdAt   DateTime     @default(now())
+}
+
+model Connection {
+  id         String          @id
+  type       OAuth2Providers
+  user       User            @relation(fields: [userId], references: [id])
+  userId     String          @db.Uuid()
+  accessData Json
+
+  @@unique([type, userId])
+}
+
+model Session {
+  id                  String   @id @db.Uuid()
+  user                User     @relation(fields: [userId], references: [id])
+  userId              String   @db.Uuid()
+  accessToken         String   @unique
+  accessTokenExpireAt DateTime
+  refreshToken        String   @unique
+  device              Json
+}
